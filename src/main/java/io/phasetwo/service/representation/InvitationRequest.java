@@ -8,7 +8,8 @@ import javax.validation.constraints.*;
 public class InvitationRequest {
   private @Email @Valid String email = null;
   private @Valid String inviterId = null;
-
+  private boolean send = false;
+  
   public InvitationRequest email(String email) {
     this.email = email;
     return this;
@@ -36,6 +37,20 @@ public class InvitationRequest {
 
   public void setInviterId(String inviterId) {
     this.inviterId = inviterId;
+  }
+
+  public InvitationRequest send(boolean send) {
+    this.send = send;
+    return this;
+  }
+
+  @JsonProperty("send")
+  public boolean isSend() {
+    return send;
+  }
+
+  public void setSend(boolean send) {
+    this.send = send;
   }
 
   @Override

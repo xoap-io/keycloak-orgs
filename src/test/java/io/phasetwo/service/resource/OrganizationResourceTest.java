@@ -3,16 +3,13 @@ package io.phasetwo.service.resources;
 import static io.phasetwo.service.Helpers.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import io.phasetwo.service.KeycloakSuite;
+import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.phasetwo.service.representation.Invitation;
 import io.phasetwo.service.representation.InvitationRequest;
 import io.phasetwo.service.representation.Organization;
@@ -23,20 +20,27 @@ import java.util.Map;
 import lombok.extern.jbosslog.JBossLog;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.IdentityProviderMapperRepresentation;
 import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @JBossLog
+@Testcontainers
 public class OrganizationResourceTest {
 
-  @ClassRule public static KeycloakSuite server = KeycloakSuite.SERVER;
+  @Container KeycloakContainer server = new KeycloakContainer().withContextPath("/auth/").withProviderClassesFrom("target/classes");
+  //@Container KeycloakContainer server = new KeycloakContainer("quay.io/phasetwo/keycloak-crdb:19.0.1");
+  //@ClassRule public static KeycloakSuite server = KeycloakSuite.SERVER;
 
   CloseableHttpClient http = HttpClients.createDefault();
 
@@ -45,12 +49,36 @@ public class OrganizationResourceTest {
     for (String segment : segments) {
       o.append("/").append(segment);
     }
-    return String.format("%s/realms/%s/orgs%s", server.getAuthUrl(), realm, o.toString());
+    return String.format("%s/realms/%s/orgs%s", server.getAuthServerUrl(), realm, o.toString());
   }
 
+  Keycloak getKeycloak() {
+    assertTrue(server.isRunning());
+    return server.getKeycloakAdminClient();
+  }
+
+  Keycloak getKeycloak(String realm, String clientId, String username, String password) {
+    assertTrue(server.isRunning());
+    return KeycloakBuilder.builder()
+        .serverUrl(server.getAuthServerUrl())
+        .realm(realm)
+        .clientId(clientId)
+        .username(username)
+        .password(password)
+        .build();
+  }
+  
+  @Test
+  public void testCreateDeleteOrg() throws Exception {
+    Keycloak keycloak = getKeycloak();
+    Organization rep = new Organization().name("example");
+    String id = createOrg(keycloak, "master", rep);
+    deleteOrg(keycloak, "master", id);
+  }
+  
   @Test
   public void testImportConfig() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -78,7 +106,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testAddGetUpdateDeleteOrg() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -169,7 +197,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testAddGetDeleteMemberships() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -248,7 +276,7 @@ public class OrganizationResourceTest {
 
     // call the users/:id/orgs endpoint
     String userOrgsUrl =
-        String.format("%s/realms/%s/users/%s/orgs", server.getAuthUrl(), "master", user.getId());
+        String.format("%s/realms/%s/users/%s/orgs", server.getAuthServerUrl(), "master", user.getId());
     response =
         SimpleHttp.doGet(userOrgsUrl, http)
             .auth(keycloak.tokenManager().getAccessTokenString())
@@ -275,7 +303,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testDuplicateRoles() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -317,7 +345,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testAddGetDeleteRoles() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -476,7 +504,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testAddGetDeleteInvitations() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -526,7 +554,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testAddGetDeleteIdps() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));
@@ -761,9 +789,9 @@ public class OrganizationResourceTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void testIdpsOwnedOrgs() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     // create one org
@@ -871,7 +899,7 @@ public class OrganizationResourceTest {
 
   @Test
   public void testOrgAdminPermissions() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     // create one org
@@ -901,7 +929,7 @@ public class OrganizationResourceTest {
       grantUserRole(keycloak, orgId1, role, user1.getId());
     }
 
-    Keycloak kc1 = server.client("master", "admin-cli", "user1", "pass");
+    Keycloak kc1 = getKeycloak("master", "admin-cli", "user1", "pass");
     // check that user has permissions to
     //  update org
     rep.url("https://www.example.com/").displayName("Example company");
@@ -1020,9 +1048,9 @@ public class OrganizationResourceTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   public void testOrgPortalLink() throws Exception {
-    Keycloak keycloak = server.client();
+    Keycloak keycloak = getKeycloak();
     SimpleHttp.Response response = null;
 
     Organization rep = new Organization().name("example").domains(ImmutableSet.of("example.com"));

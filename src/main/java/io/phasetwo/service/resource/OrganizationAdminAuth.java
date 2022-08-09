@@ -278,6 +278,7 @@ public class OrganizationAdminAuth extends AdminAuth {
       return false;
     }
     */
+    log.infof("hasOrgRole %s %s for %s", org, roleName, getUser());
     OrganizationRoleModel role = org.getRoleByName(roleName);
     boolean has = (role != null && role.hasRole(getUser()));
     log.infof("%s has role %s? %b", getUser().getId(), roleName, has);
