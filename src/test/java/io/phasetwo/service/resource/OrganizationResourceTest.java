@@ -5,6 +5,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -33,12 +34,18 @@ import org.keycloak.representations.idm.IdentityProviderRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import java.io.File;
 
 @JBossLog
 @Testcontainers
 public class OrganizationResourceTest {
 
-  @Container KeycloakContainer server = new KeycloakContainer().withContextPath("/auth/").withProviderClassesFrom("target/classes");
+  static final List<File> dependencies = Maven.resolver()
+                                        .loadPomFromFile("./pom.xml")
+                                        .resolve("org.keycloak:keycloak-admin-client")
+                                        .withoutTransitivity().asList(File.class);
+
+  @Container static final KeycloakContainer server = new KeycloakContainer("quay.io/keycloak/keycloak:19.0.1").withContextPath("/auth/").withProviderClassesFrom("target/classes").withProviderLibsFrom(dependencies);
   //@Container KeycloakContainer server = new KeycloakContainer("quay.io/phasetwo/keycloak-crdb:19.0.1");
   //@ClassRule public static KeycloakSuite server = KeycloakSuite.SERVER;
 
