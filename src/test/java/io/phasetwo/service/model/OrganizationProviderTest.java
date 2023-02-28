@@ -74,7 +74,7 @@ public class OrganizationProviderTest {
 
       OrganizationRoleModel role = org.getRoleByName("admins");
       assertThat(role.getName(), is("admins"));
-      assertTrue(role.hasRole(user));
+      assertTrue(role.hasDirectRole(user));
 
       session.getTransactionManager().commit();
     } finally {

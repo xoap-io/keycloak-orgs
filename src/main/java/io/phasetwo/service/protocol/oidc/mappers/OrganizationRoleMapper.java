@@ -3,9 +3,12 @@ package io.phasetwo.service.protocol.oidc.mappers;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.phasetwo.service.model.OrganizationProvider;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -51,17 +54,16 @@ public class OrganizationRoleMapper extends AbstractOrganizationMapper {
     Map<String, Object> claim = Maps.newHashMap();
     orgs.getUserOrganizationsStream(realm, user)
         .forEach(
-            o -> {
-              List<String> roles = Lists.newArrayList();
-              o.getRolesStream()
-                  .forEach(
-                      r -> {
-                        if (r.hasRole(user)) roles.add(r.getName());
-                      });
-              Map<String, Object> org = Maps.newHashMap();
-              org.put("name", o.getName());
-              org.put("roles", roles);
-              claim.put(o.getId(), org);
+            org -> {
+              Set<String> roles = Sets.newLinkedHashSet();
+              org.getRolesStream()
+                  .filter(r -> r.hasRole(user))
+                  .forEach(r -> roles.add(r.getName()));
+
+              Map<String, Object> organization = Maps.newHashMap();
+              organization.put("name", org.getName());
+              organization.put("roles", roles);
+              claim.put(org.getId(), organization);
             });
     log.debugf("created user %s claim %s", user.getUsername(), claim);
     return claim;

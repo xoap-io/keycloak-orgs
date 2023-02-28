@@ -3,14 +3,13 @@ package io.phasetwo.service.resource;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.phasetwo.service.model.InvitationModel;
+import io.phasetwo.service.model.OrganizationGroupModel;
 import io.phasetwo.service.model.OrganizationModel;
 import io.phasetwo.service.model.OrganizationRoleModel;
 import io.phasetwo.service.model.jpa.entity.InvitationEntity;
 import io.phasetwo.service.model.jpa.entity.TeamEntity;
-import io.phasetwo.service.representation.Invitation;
-import io.phasetwo.service.representation.Organization;
-import io.phasetwo.service.representation.OrganizationRole;
-import io.phasetwo.service.representation.Team;
+import io.phasetwo.service.representation.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,9 +20,19 @@ import org.keycloak.representations.account.UserRepresentation;
 public class Converters {
 
   public static OrganizationRole convertOrganizationRole(OrganizationRoleModel m) {
-    OrganizationRole r =
-        new OrganizationRole().id(m.getId()).name(m.getName()).description(m.getDescription());
-    return r;
+    return new OrganizationRole()
+            .id(m.getId())
+            .name(m.getName())
+            .description(m.getDescription());
+  }
+
+  public static Group convertOrganizationGroup(OrganizationGroupModel e) {
+    return new Group()
+            .id(e.getId())
+            .name(e.getName())
+            .description(e.getDescription())
+            .parentId(e.getParentId())
+            .attributes(e.getAttributes());
   }
 
   public static Organization convertOrganizationModelToOrganization(OrganizationModel e) {

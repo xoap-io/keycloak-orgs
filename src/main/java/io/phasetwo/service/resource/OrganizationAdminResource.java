@@ -1,9 +1,12 @@
 package io.phasetwo.service.resource;
 
+import io.phasetwo.service.model.OrganizationModel;
 import io.phasetwo.service.model.OrganizationProvider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.persistence.EntityManager;
+import javax.ws.rs.NotAuthorizedException;
+
 import lombok.extern.jbosslog.JBossLog;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.admin.client.Keycloak;
@@ -57,6 +60,14 @@ public class OrganizationAdminResource extends AbstractAdminResource<Organizatio
         .clientId(clientId)
         .authorization(token)
         .build();
+  }
+
+  protected final NotAuthorizedException notAuthorized(String roleName, OrganizationModel org) {
+    String readableRoleName = roleName.replace('-', ' ');
+    return new NotAuthorizedException(
+        String.format(
+            "User %s doesn't have permission to %s in org %s",
+            auth.getUser().getId(), readableRoleName, org.getName()));
   }
 
   protected final String getServerUrl() {

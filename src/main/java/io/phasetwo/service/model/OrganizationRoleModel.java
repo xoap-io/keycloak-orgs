@@ -21,5 +21,19 @@ public interface OrganizationRoleModel {
 
   void revokeRole(UserModel user);
 
+  void grantRole(OrganizationGroupModel group);
+
+  void revokeRole(OrganizationGroupModel group);
+
+  boolean hasRole(OrganizationGroupModel group);
+
+  /**
+   * if user has direct or indirect (by group) association to role
+   */
   boolean hasRole(UserModel user);
+
+  /**
+   * if user has direct association to role
+   */
+  boolean hasDirectRole(UserModel user);
 }

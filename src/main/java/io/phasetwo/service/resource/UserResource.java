@@ -6,7 +6,6 @@ import io.phasetwo.service.model.OrganizationModel;
 import io.phasetwo.service.representation.Organization;
 import io.phasetwo.service.representation.OrganizationRole;
 import java.util.stream.Stream;
-import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import lombok.extern.jbosslog.JBossLog;

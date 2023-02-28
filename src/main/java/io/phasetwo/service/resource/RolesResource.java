@@ -47,10 +47,7 @@ public class RolesResource extends OrganizationAdminResource {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response createRole(OrganizationRole representation) {
     if (!auth.hasManageOrgs() && !auth.hasOrgManageRoles(organization)) {
-      throw new NotAuthorizedException(
-          String.format(
-              "User %s doesn't have permission to manage roles in org %s",
-              auth.getUser().getId(), organization.getName()));
+      throw notAuthorized(OrganizationAdminAuth.ORG_ROLE_MANAGE_ROLES, organization);
     }
     OrganizationRoleModel r = organization.getRoleByName(representation.getName());
     if (r != null) {

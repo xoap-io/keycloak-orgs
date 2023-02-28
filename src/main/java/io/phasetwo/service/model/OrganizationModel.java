@@ -6,13 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.provider.ProviderEvent;
 
-public interface OrganizationModel {
+public interface OrganizationModel extends WithAttributesModel {
 
   String getId();
 
@@ -37,36 +38,6 @@ public interface OrganizationModel {
   RealmModel getRealm();
 
   UserModel getCreatedBy();
-
-  Map<String, List<String>> getAttributes();
-
-  default Stream<String> getAttributesStream(String name) {
-    List<String> attrs = getAttributes().get(name);
-    if (attrs != null && attrs.size() > 0) {
-      return attrs.stream();
-    } else {
-      return Stream.empty();
-    }
-  }
-
-  default String getFirstAttribute(String name) {
-    List<String> attrs = getAttributes().get(name);
-    if (attrs != null && attrs.size() > 0) {
-      return attrs.get(0);
-    } else {
-      return null;
-    }
-  }
-
-  void removeAttributes();
-
-  void removeAttribute(String name);
-
-  void setAttribute(String name, List<String> values);
-
-  default void setSingleAttribute(String name, String value) {
-    setAttribute(name, ImmutableList.of(value));
-  }
 
   Stream<UserModel> getMembersStream();
 
@@ -100,6 +71,20 @@ public interface OrganizationModel {
   void removeRole(String name);
 
   OrganizationRoleModel addRole(String name);
+
+  Stream<OrganizationGroupModel> getGroupsStream();
+
+  default OrganizationGroupModel getGroupById(String groupId) {
+    return getGroupsStream()
+            .filter(r -> groupId.equals(r.getId()))
+            .findFirst().orElse(null);
+  }
+
+  void removeGroup(String groupId);
+
+  void moveGroup(OrganizationGroupModel child, OrganizationGroupModel parent);
+
+  OrganizationGroupModel createGroup(String groupName, OrganizationGroupModel parent);
 
   Stream<IdentityProviderModel> getIdentityProvidersStream();
 

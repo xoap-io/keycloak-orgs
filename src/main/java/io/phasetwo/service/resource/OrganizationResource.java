@@ -94,6 +94,16 @@ public class OrganizationResource extends OrganizationAdminResource {
     }
   }
 
+  @Path("groups")
+  public GroupsResource groups() {
+    if (auth.hasViewOrgs() || auth.hasOrgViewGroups(organization)) {
+      return setupResource(new GroupsResource(realm, organization));
+    } else {
+      throw new NotAuthorizedException(
+          String.format("Insufficient permission to access groups for %s", organization.getId()));
+    }
+  }
+
   @GET
   @Path("")
   @Produces(MediaType.APPLICATION_JSON)
@@ -134,8 +144,9 @@ public class OrganizationResource extends OrganizationAdminResource {
       organization.setDisplayName(body.getDisplayName());
       organization.setUrl(body.getUrl());
       organization.removeAttributes();
-      if (body.getAttributes() != null)
-        body.getAttributes().forEach((k, v) -> organization.setAttribute(k, v));
+      if (body.getAttributes() != null) {
+        body.getAttributes().forEach(organization::setAttribute);
+      }
       if (body.getDomains() != null) organization.setDomains(body.getDomains());
 
       Organization o = convertOrganizationModelToOrganization(organization);
@@ -215,20 +226,20 @@ public class OrganizationResource extends OrganizationAdminResource {
                 .getUserByUsername(realm, String.format("org-admin-%s", organization.getId()));
       }
       if (user == null) {
-        throw new BadRequestException(String.format("User %s not found", userId));
+        throw new BadRequestException(String.format("User '%s' not found", userId));
       }
       log.debugf("Using user %s (%s) for portal-link", user.getUsername(), user.getId());
 
       // check membership and roles
       if (!organization.hasMembership(user)) {
         throw new BadRequestException(
-            String.format("User %s is not a member of this organization", userId));
+            String.format("User '%s' is not a member of this organization", userId));
       }
       for (String role : DEFAULT_ORG_ROLES) {
         OrganizationRoleModel roleModel = organization.getRoleByName(role);
         if (!roleModel.hasRole(user)) {
           throw new BadRequestException(
-              String.format("User has insufficient permissions. Needs %s.", role));
+              String.format("User has insufficient permissions. Needs '%s'.", role));
         }
       }
 

@@ -1,0 +1,105 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP-1">
+    <createTable tableName="ORGANIZATION_GROUP">
+      <column name="ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="VARCHAR(255)"/>
+      <column name="DESCRIPTION" type="VARCHAR(1024)"/>
+      <column name="ORGANIZATION_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PARENT_ID" type="VARCHAR(36)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP-2">
+    <addPrimaryKey columnNames="ID" constraintName="PK_organization_group" tableName="ORGANIZATION_GROUP"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP-3">
+    <addForeignKeyConstraint baseColumnNames="ORGANIZATION_ID" baseTableName="ORGANIZATION_GROUP" constraintName="FK_group_to_organization" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP-4">
+    <addUniqueConstraint columnNames="ORGANIZATION_ID, PARENT_ID, NAME" constraintName="UK_organization_group_name" tableName="ORGANIZATION_GROUP"/>
+  </changeSet>
+
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_MEMBER-1">
+    <createTable tableName="ORGANIZATION_GROUP_MEMBER">
+      <column name="ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ORGANIZATION_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="GROUP_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="USER_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATED_AT" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_MEMBER-2">
+    <addPrimaryKey columnNames="ID" constraintName="PK_organization_group_member" tableName="ORGANIZATION_GROUP_MEMBER"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_MEMBER-3">
+    <addForeignKeyConstraint baseColumnNames="ORGANIZATION_ID" baseTableName="ORGANIZATION_GROUP_MEMBER" constraintName="FK_group_member_to_organization" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_MEMBER-4">
+    <addForeignKeyConstraint baseColumnNames="GROUP_ID" baseTableName="ORGANIZATION_GROUP_MEMBER" constraintName="FK_group_member_to_group" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_GROUP"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_MEMBER-5">
+    <addUniqueConstraint columnNames="GROUP_ID, USER_ID" constraintName="UK_group_member_user" tableName="ORGANIZATION_GROUP_MEMBER"/>
+  </changeSet>
+
+  <changeSet author="a8t3r" id="20230225-GROUP_ORGANIZATION_ROLE_MAPPING-1">
+    <createTable tableName="GROUP_ORGANIZATION_ROLE_MAPPING">
+      <column name="ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="GROUP_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ROLE_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATED_AT" type="TIMESTAMP"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-GROUP_ORGANIZATION_ROLE_MAPPING-2">
+    <addPrimaryKey columnNames="ID" constraintName="PK_group_organization_role_mapping" tableName="GROUP_ORGANIZATION_ROLE_MAPPING"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-GROUP_ORGANIZATION_ROLE_MAPPING-3">
+    <addForeignKeyConstraint baseColumnNames="ROLE_ID" baseTableName="GROUP_ORGANIZATION_ROLE_MAPPING" constraintName="FK_group_organization_mapping_to_role" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_ROLE"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-GROUP_ORGANIZATION_ROLE_MAPPING-4">
+    <addForeignKeyConstraint baseColumnNames="GROUP_ID" baseTableName="GROUP_ORGANIZATION_ROLE_MAPPING" constraintName="FK_group_organization_mapping_to_group" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_GROUP"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-GROUP_ORGANIZATION_ROLE_MAPPING-5">
+    <addUniqueConstraint columnNames="GROUP_ID, ROLE_ID" constraintName="UK_group_organization_mapping" tableName="GROUP_ORGANIZATION_ROLE_MAPPING"/>
+  </changeSet>
+
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_ATTRIBUTE-1">
+    <createTable tableName="ORGANIZATION_GROUP_ATTRIBUTE">
+      <column name="ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VALUE" type="NVARCHAR(255)"/>
+      <column name="GROUP_ID" type="VARCHAR(36)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_ATTRIBUTE-2">
+    <addForeignKeyConstraint baseColumnNames="GROUP_ID" baseTableName="ORGANIZATION_GROUP_ATTRIBUTE" constraintName="FK_group_attributes_to_group" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_GROUP"/>
+  </changeSet>
+  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_ATTRIBUT-3">
+    <addUniqueConstraint columnNames="GROUP_ID, NAME" constraintName="UK_group_attributes_group_and_name" tableName="ORGANIZATION_GROUP_ATTRIBUTE"/>
+  </changeSet>
+
+</databaseChangeLog>

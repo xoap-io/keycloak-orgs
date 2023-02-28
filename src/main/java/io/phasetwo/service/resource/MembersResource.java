@@ -54,7 +54,7 @@ public class MembersResource extends OrganizationAdminResource {
         .equals(OrganizationResourceProviderFactory.getDefaultAdminUsername(organization))) {
       throw new ForbiddenException("Cannot remove default organization user.");
     }
-    if (member != null && organization.hasMembership(member)) {
+    if (organization.hasMembership(member)) {
       organization.revokeMembership(member);
       adminEvent
           .resource(ORGANIZATION_MEMBERSHIP.name())
@@ -107,10 +107,7 @@ public class MembersResource extends OrganizationAdminResource {
 
   private void canManage() {
     if (!auth.hasManageOrgs() && !auth.hasOrgManageMembers(organization)) {
-      throw new NotAuthorizedException(
-          String.format(
-              "User %s doesn't have permission to manage members in org %s",
-              auth.getUser().getId(), organization.getName()));
+      throw notAuthorized(OrganizationAdminAuth.ORG_ROLE_MANAGE_MEMBERS, organization);
     }
   }
 }

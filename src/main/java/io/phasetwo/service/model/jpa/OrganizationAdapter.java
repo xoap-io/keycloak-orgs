@@ -2,29 +2,21 @@ package io.phasetwo.service.model.jpa;
 
 import static io.phasetwo.service.Orgs.*;
 
-import io.phasetwo.service.model.DomainModel;
-import io.phasetwo.service.model.InvitationModel;
-import io.phasetwo.service.model.OrganizationModel;
-import io.phasetwo.service.model.OrganizationRoleModel;
-import io.phasetwo.service.model.jpa.entity.DomainEntity;
-import io.phasetwo.service.model.jpa.entity.InvitationEntity;
-import io.phasetwo.service.model.jpa.entity.OrganizationAttributeEntity;
-import io.phasetwo.service.model.jpa.entity.OrganizationEntity;
-import io.phasetwo.service.model.jpa.entity.OrganizationMemberEntity;
-import io.phasetwo.service.model.jpa.entity.OrganizationRoleEntity;
+import io.phasetwo.service.model.*;
+import io.phasetwo.service.model.jpa.entity.*;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import org.keycloak.common.util.MultivaluedHashMap;
-import org.keycloak.models.IdentityProviderModel;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserModel;
+import org.keycloak.models.*;
 import org.keycloak.models.jpa.JpaModel;
+import org.keycloak.models.jpa.entities.GroupEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
 public class OrganizationAdapter implements OrganizationModel, JpaModel<OrganizationEntity> {
@@ -164,7 +156,7 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
   @Override
   public Stream<UserModel> getMembersStream() {
     return org.getMembers().stream()
-        .map(m -> m.getUserId())
+        .map(OrganizationMemberEntity::getUserId)
         .map(uid -> session.users().getUserById(realm, uid));
   }
 
@@ -189,6 +181,7 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
     if (!hasMembership(user)) return;
     org.getMembers().removeIf(m -> m.getUserId().equals(user.getId()));
     getRolesStream().forEach(r -> r.revokeRole(user));
+    getGroupsStream().forEach(g -> g.leaveGroup(user));
     if (user.getEmail() != null) revokeInvitations(user.getEmail());
   }
 
@@ -230,12 +223,18 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
 
   @Override
   public Stream<OrganizationRoleModel> getRolesStream() {
-    return org.getRoles().stream().map(r -> new OrganizationRoleAdapter(session, realm, em, r));
+    return org.getRoles().stream().map(r -> new OrganizationRoleAdapter(session, realm, em, r, this));
   }
 
   @Override
   public void removeRole(String name) {
-    org.getRoles().removeIf(r -> r.getName().equals(name));
+    Optional<OrganizationRoleEntity> roleEntityOpt = org.getRoles().stream().filter(r -> r.getName().equals(name)).findFirst();
+    if (roleEntityOpt.isEmpty()) return;
+
+    OrganizationRoleEntity roleEntity = roleEntityOpt.get();
+    roleEntity.getUserMappings().clear();
+    roleEntity.getGroupMappings().clear();
+    org.getRoles().remove(roleEntity);
   }
 
   @Override
@@ -246,7 +245,48 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
     r.setOrganization(org);
     em.persist(r);
     org.getRoles().add(r);
-    return new OrganizationRoleAdapter(session, realm, em, r);
+    return new OrganizationRoleAdapter(session, realm, em, r, this);
+  }
+
+  @Override
+  public Stream<OrganizationGroupModel> getGroupsStream() {
+    return org.getGroups().stream().map(r -> new OrganizationGroupAdapter(session, realm, em, this, r));
+  }
+
+  @Override
+  public void removeGroup(String groupId) {
+    OrganizationGroupModel group = getGroupById(groupId);
+    group.removeGroup();
+    org.getGroups().remove(group.getEntity());
+  }
+
+  @Override
+  public void moveGroup(OrganizationGroupModel child, OrganizationGroupModel parent) {
+    if (parent != null && child.getId().equals(parent.getId())) {
+      return;
+    }
+    if (child.getParentId() != null) {
+      child.getParent().removeChild(child);
+    }
+    child.setParent(parent);
+    if (parent != null) {
+      parent.addChild(child);
+    }
+
+    em.flush();
+  }
+
+  @Override
+  public OrganizationGroupModel createGroup(String groupName, OrganizationGroupModel parent) {
+    OrganizationGroupEntity g = new OrganizationGroupEntity();
+    g.setId(KeycloakModelUtils.generateId());
+    g.setName(groupName);
+    g.setOrganization(org);
+    g.setParentId(parent == null ? GroupEntity.TOP_PARENT_ID : parent.getId());
+    em.persist(g);
+    org.getGroups().add(g);
+    em.flush();
+    return new OrganizationGroupAdapter(session, realm, em, this, g);
   }
 
   @Override

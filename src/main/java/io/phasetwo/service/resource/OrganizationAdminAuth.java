@@ -156,6 +156,10 @@ public class OrganizationAdminAuth extends AdminAuth {
   public static final String ORG_ROLE_VIEW_IDENTITY_PROVIDERS = "view-identity-providers";
   public static final String ORG_ROLE_MANAGE_IDENTITY_PROVIDERS = "manage-identity-providers";
 
+  public static final String ORG_ROLE_VIEW_GROUPS = "view-groups";
+
+  public static final String ORG_ROLE_MANAGE_GROUPS = "manage-groups";
+
   public static final String[] DEFAULT_ORG_ROLES = {
     ORG_ROLE_VIEW_ORGANIZATION,
     ORG_ROLE_MANAGE_ORGANIZATION,
@@ -166,7 +170,9 @@ public class OrganizationAdminAuth extends AdminAuth {
     ORG_ROLE_VIEW_INVITATIONS,
     ORG_ROLE_MANAGE_INVITATIONS,
     ORG_ROLE_VIEW_IDENTITY_PROVIDERS,
-    ORG_ROLE_MANAGE_IDENTITY_PROVIDERS
+    ORG_ROLE_MANAGE_IDENTITY_PROVIDERS,
+    ORG_ROLE_VIEW_GROUPS,
+    ORG_ROLE_MANAGE_GROUPS
   };
 
   /**
@@ -251,6 +257,24 @@ public class OrganizationAdminAuth extends AdminAuth {
    */
   boolean hasOrgManageIdentityProviders(OrganizationModel org) {
     return hasOrgRole(org, ORG_ROLE_MANAGE_IDENTITY_PROVIDERS);
+  }
+
+  /**
+   * @param org The selected organization
+   * @return true if the logged-in user has the view-groups permission *IN* the
+   *     specified org
+   */
+  boolean hasOrgViewGroups(OrganizationModel org) {
+    return hasOrgRole(org, ORG_ROLE_VIEW_GROUPS);
+  }
+
+  /**
+   * @param org The selected organization
+   * @return true if the logged-in user has the manage-groups permission *IN* the
+   *     specified org
+   */
+  boolean hasOrgManageGroups(OrganizationModel org) {
+    return hasOrgRole(org, ORG_ROLE_MANAGE_GROUPS);
   }
 
   /**

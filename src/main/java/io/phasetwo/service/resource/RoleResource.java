@@ -10,7 +10,6 @@ import io.phasetwo.service.representation.OrganizationRole;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.validation.constraints.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,7 +65,7 @@ public class RoleResource extends OrganizationAdminResource {
 
     if (Arrays.asList(OrganizationAdminAuth.DEFAULT_ORG_ROLES).contains(name)) {
       throw new BadRequestException(
-          String.format("Default organization role %s cannot be deleted.", name));
+          String.format("Default organization role '%s' cannot be deleted.", name));
     }
 
     organization.removeRole(name);
@@ -92,7 +91,7 @@ public class RoleResource extends OrganizationAdminResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response userHasRole(@PathParam("userId") String userId) {
     UserModel user = session.users().getUserById(realm, userId);
-    if (user != null && role.hasRole(user)) {
+    if (user != null && role.hasDirectRole(user)) {
       return Response.noContent().build();
     } else {
       throw new NotFoundException(String.format("User %s doesn't have role %s", userId, name));
@@ -110,10 +109,10 @@ public class RoleResource extends OrganizationAdminResource {
       if (!organization.hasMembership(user)) {
         throw new BadRequestException(
             String.format(
-                "User %s must be a member of %s to be granted role.",
+                "User '%s' must be a member of '%s' to be granted role.",
                 userId, organization.getName()));
       }
-      if (!role.hasRole(user)) {
+      if (!role.hasDirectRole(user)) {
         role.grantRole(user);
 
         adminEvent
@@ -138,7 +137,7 @@ public class RoleResource extends OrganizationAdminResource {
     canManage();
 
     UserModel user = session.users().getUserById(realm, userId);
-    if (user != null && role.hasRole(user)) {
+    if (user != null && role.hasDirectRole(user)) {
       role.revokeRole(user);
       adminEvent
           .resource(ORGANIZATION_ROLE_MAPPING.name())
@@ -154,10 +153,7 @@ public class RoleResource extends OrganizationAdminResource {
 
   private void canManage() {
     if (!auth.hasManageOrgs() && !auth.hasOrgManageRoles(organization)) {
-      throw new NotAuthorizedException(
-          String.format(
-              "User %s doesn't have permission to manage roles in org %s",
-              auth.getUser().getId(), organization.getName()));
+      throw notAuthorized(OrganizationAdminAuth.ORG_ROLE_MANAGE_ROLES, organization);
     }
   }
 }

@@ -50,6 +50,14 @@ public class OrganizationRoleEntity {
   protected Collection<UserOrganizationRoleMappingEntity> userMappings =
       new ArrayList<UserOrganizationRoleMappingEntity>();
 
+  @OneToMany(
+          fetch = FetchType.LAZY,
+          cascade = CascadeType.ALL,
+          orphanRemoval = true,
+          mappedBy = "role")
+  protected Collection<GroupOrganizationRoleMappingEntity> groupMappings =
+          new ArrayList<GroupOrganizationRoleMappingEntity>();
+
   public String getId() {
     return id;
   }
@@ -88,6 +96,14 @@ public class OrganizationRoleEntity {
 
   public void setUserMappings(Collection<UserOrganizationRoleMappingEntity> userMappings) {
     setCollection(userMappings, this.userMappings);
+  }
+
+  public Collection<GroupOrganizationRoleMappingEntity> getGroupMappings() {
+    return groupMappings;
+  }
+
+  public void setGroupMappings(Collection<GroupOrganizationRoleMappingEntity> groupMappings) {
+    this.groupMappings = groupMappings;
   }
 
   @Override

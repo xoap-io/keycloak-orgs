@@ -6,10 +6,20 @@ import static org.hamcrest.MatcherAssert.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URLEncoder;
+import java.util.Map;
+
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.UserRepresentation;
 
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.GenericType;
+
 public class Helpers {
+
+  public static String getResponseMessage(ClientErrorException ex) {
+    Map<String, String> body = ex.getResponse().readEntity(new GenericType<>() {});
+    return body.get("error");
+  }
 
   public static UserRepresentation createUser(Keycloak keycloak, String realm, String username) {
     UserRepresentation user = new UserRepresentation();
