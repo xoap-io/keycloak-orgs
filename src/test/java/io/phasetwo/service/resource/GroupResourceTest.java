@@ -1,16 +1,24 @@
 package io.phasetwo.service.resource;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.openshift.internal.restclient.model.oauth.OAuthClient;
 import io.phasetwo.client.OrganizationResource;
 import io.phasetwo.client.OrganizationsResource;
 import io.phasetwo.client.UserResource;
 import io.phasetwo.client.*;
+import io.phasetwo.client.openapi.model.IdentityProviderMapperRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationGroupRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationRoleRepresentation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.resource.RoleMappingResource;
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.representations.idm.*;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
@@ -40,6 +48,13 @@ public class GroupResourceTest extends AbstractResourceTest {
   @After
   public void destroyOrganization() {
     orgResource.delete();
+  }
+
+  private OrganizationGroupResource createGroupWithRole(String groupName, String roleName) {
+    OrganizationGroupResource groupResource = createGroup(groupName, null);
+    String role = orgResource.roles().create(new OrganizationRoleRepresentation().name(roleName));
+    groupResource.addRole(role);
+    return groupResource;
   }
 
   private OrganizationGroupResource createGroup(String name) {
@@ -100,6 +115,35 @@ public class GroupResourceTest extends AbstractResourceTest {
     createGroup("child", rootId);
     ClientErrorException ex = assertThrows(ClientErrorException.class, () -> createGroup("child", rootId));
     assertThat(getResponseMessage(ex), is("Level group named 'child' already exists."));
+  }
+
+  @Test
+  public void testUserMembership() {
+    Keycloak keycloak = server.client();
+    UserRepresentation user = createUser(keycloak, REALM, "johndoe");
+    OrganizationGroupResource apples = createGroupWithRole("apples", "eat-apples");
+    OrganizationGroupResource vegetables = createGroupWithRole("vegetables", "eat-vegetables");
+    String id = orgResource.get().getId();
+
+    // join user to organization and all groups
+    OrganizationMembershipsResource membershipsResource = orgResource.memberships();
+    membershipsResource.add(user.getId());
+    apples.addUser(user.getId());
+    vegetables.addUser(user.getId());
+
+    UserResource userResource = client.users(REALM).user(user.getId());
+    List<OrganizationRoleRepresentation> userRoles = userResource.getRoles(id);
+    assertThat(userRoles, hasSize(2));
+    assertThat(userRoles, hasItem(hasProperty("name", is("eat-apples"))));
+    assertThat(userRoles, hasItem(hasProperty("name", is("eat-vegetables"))));
+
+    // leave the organization
+    membershipsResource.remove(user.getId());
+    assertThrows(NotFoundException.class, () -> userResource.getRoles(id));
+
+    // join back to organization
+    membershipsResource.add(user.getId());
+    assertThat(userResource.getRoles(id), empty());
   }
 
   @Test
