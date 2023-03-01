@@ -66,7 +66,7 @@ public class OrganizationAdminResource extends AbstractAdminResource<Organizatio
     String readableRoleName = roleName.replace('-', ' ');
     return new NotAuthorizedException(
         String.format(
-            "User %s doesn't have permission to %s in org %s",
+            "User '%s' doesn't have permission to '%s' in org '%s'",
             auth.getUser().getId(), readableRoleName, org.getName()));
   }
 
