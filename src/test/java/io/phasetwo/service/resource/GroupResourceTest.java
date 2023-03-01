@@ -144,6 +144,8 @@ public class GroupResourceTest extends AbstractResourceTest {
     // join back to organization
     membershipsResource.add(user.getId());
     assertThat(userResource.getRoles(id), empty());
+    assertThat(apples.isMember(user.getId()), is(false));
+    assertThat(vegetables.isMember(user.getId()), is(false));
   }
 
   @Test
