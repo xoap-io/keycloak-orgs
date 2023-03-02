@@ -112,6 +112,17 @@ public class GroupResourceTest extends AbstractResourceTest {
   }
 
   @Test
+  public void testCycleBetweenGroups() {
+    OrganizationGroupResource rootResource = createGroup("root");
+    String rootId = rootResource.get().getId();
+    OrganizationGroupResource childResource = createGroup("child", rootId);
+
+    ClientErrorException ex = assertThrows(ClientErrorException.class,
+            () -> rootResource.update(new OrganizationGroupRepresentation().parentId(childResource.get().getId())));
+    assertThat(Helpers.getResponseMessage(ex), is("Cycle detected between groups"));
+  }
+
+  @Test
   public void testUserMembership() {
     Keycloak keycloak = server.client();
     UserRepresentation user = createUser(keycloak, REALM, "johndoe");
