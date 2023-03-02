@@ -32,6 +32,7 @@ import org.keycloak.representations.idm.RealmRepresentation;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -782,21 +783,50 @@ public class OrganizationResourceTest extends AbstractResourceTest {
   public void testOrganizationDefaultProperties() {
     OrganizationsResource orgsResource = phaseTwo().organizations(REALM);
     String id = orgsResource.create(new OrganizationRepresentation().name("example"));
-    OrganizationRepresentation rep = orgsResource.organization(id).get();
+    OrganizationResource orgResource = orgsResource.organization(id);
+    OrganizationRepresentation rep = orgResource.get();
     assertThat(rep.getId(), is(id));
     assertThat(rep.getName(), is("example"));
     assertThat(rep.getDisplayName(), nullValue());
     assertThat(rep.getUrl(), nullValue());
     assertThat(rep.getDomains(), empty());
     assertThat(rep.getAttributes(), anEmptyMap());
+
+    // delete org
+    orgResource.delete();
   }
 
   @Test
   public void testOrganizationSearch() {
     OrganizationsResource orgsResource = phaseTwo().organizations(REALM);
-    orgsResource.create(new OrganizationRepresentation().name("example"));
+    String id = createDefaultOrg(orgsResource);
     List<OrganizationRepresentation> organizations = orgsResource.get(Optional.of("ex%"), Optional.empty(), Optional.empty());
     assertThat(organizations, hasSize(1));
     assertThat(organizations.get(0).getName(), startsWith("ex"));
+
+    // delete org
+    orgsResource.organization(id).delete();
+  }
+
+  @Test
+  public void testOrganizationAttributes() {
+    OrganizationsResource orgsResource = phaseTwo().organizations(REALM);
+    OrganizationRepresentation rep = new OrganizationRepresentation()
+            .name("attributes")
+            .attributes(new HashMap<>() {{
+              put("key1", List.of("value1"));
+              put("key2", List.of("value1", "value2"));
+              put("key3", List.of("value1", "value2", "value3"));
+            }});
+    String id = orgsResource.create(rep);
+    OrganizationResource organizationResource = orgsResource.organization(id);
+    Map<String, List<String>> attributes = organizationResource.get().getAttributes();
+    assertThat(attributes, aMapWithSize(3));
+    assertThat(attributes, hasEntry("key1", List.of("value1")));
+    assertThat(attributes, hasEntry("key2", List.of("value1", "value2")));
+    assertThat(attributes, hasEntry("key3", List.of("value1", "value2", "value3")));
+
+    // delete org
+    organizationResource.delete();
   }
 }
