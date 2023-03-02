@@ -41,14 +41,7 @@ import static io.phasetwo.service.Helpers.deleteUser;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.oneOf;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThrows;
 
 @JBossLog
@@ -783,5 +776,18 @@ public class OrganizationResourceTest extends AbstractResourceTest {
 
     // delete org
     orgResource.delete();
+  }
+
+  @Test
+  public void testOrganizationDefaultProperties() {
+    OrganizationsResource orgsResource = phaseTwo().organizations(REALM);
+    String id = orgsResource.create(new OrganizationRepresentation().name("example"));
+    OrganizationRepresentation rep = orgsResource.organization(id).get();
+    assertThat(rep.getId(), is(id));
+    assertThat(rep.getName(), is("example"));
+    assertThat(rep.getDisplayName(), nullValue());
+    assertThat(rep.getUrl(), nullValue());
+    assertThat(rep.getDomains(), empty());
+    assertThat(rep.getAttributes(), anEmptyMap());
   }
 }
