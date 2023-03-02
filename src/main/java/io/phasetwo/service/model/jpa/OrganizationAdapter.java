@@ -2,6 +2,7 @@ package io.phasetwo.service.model.jpa;
 
 import static io.phasetwo.service.Orgs.*;
 
+import com.google.common.collect.Streams;
 import io.phasetwo.service.model.*;
 import io.phasetwo.service.model.jpa.entity.*;
 
@@ -13,6 +14,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.core.Response;
+
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.models.*;
 import org.keycloak.models.jpa.JpaModel;
@@ -260,11 +264,29 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
     org.getGroups().remove(group.getEntity());
   }
 
+  private Stream<OrganizationGroupModel> getAllSiblings(OrganizationGroupModel parent) {
+    return parent.getSubGroupsStream().flatMap(g -> {
+      Stream<OrganizationGroupModel> subGroupsStream = g.getSubGroupsStream()
+              .flatMap(s -> Streams.concat(getAllSiblings(s), Stream.of(s)));
+      return Stream.concat(subGroupsStream, Stream.of(g));
+    });
+  }
+
+  private void checkCycle(OrganizationGroupModel child, OrganizationGroupModel parent) {
+    if (parent != null) {
+      if (getAllSiblings(child).anyMatch(g -> g.getId().equals(parent.getId()))) {
+        throw new ModelIllegalStateException("Cycle detected between groups");
+      }
+    }
+  }
+
   @Override
   public void moveGroup(OrganizationGroupModel child, OrganizationGroupModel parent) {
     if (parent != null && child.getId().equals(parent.getId())) {
       return;
     }
+    checkCycle(child, parent);
+
     if (child.getParentId() != null) {
       child.getParent().removeChild(child);
     }

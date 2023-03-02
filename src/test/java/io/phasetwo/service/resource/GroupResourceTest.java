@@ -1,24 +1,18 @@
 package io.phasetwo.service.resource;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.openshift.internal.restclient.model.oauth.OAuthClient;
 import io.phasetwo.client.OrganizationResource;
 import io.phasetwo.client.OrganizationsResource;
 import io.phasetwo.client.UserResource;
 import io.phasetwo.client.*;
-import io.phasetwo.client.openapi.model.IdentityProviderMapperRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationGroupRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationRepresentation;
 import io.phasetwo.client.openapi.model.OrganizationRoleRepresentation;
+import io.phasetwo.service.Helpers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RoleMappingResource;
-import org.keycloak.models.ClientModel;
-import org.keycloak.models.utils.KeycloakModelUtils;
-import org.keycloak.representations.idm.*;
+import org.keycloak.representations.idm.UserRepresentation;
 
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
@@ -244,12 +238,9 @@ public class GroupResourceTest extends AbstractResourceTest {
     assertThat(userRoles, everyItem(hasProperty("name", oneOf("eat-vegetables", "eat-apples"))));
 
     // make cycle: child3 -> root
-    // todo: detect graph cycle and throw exception
-    rootResource.update(rootResource.get().parentId(child3Resource.get().getId()));
-    assertThat(rootResource.children(), hasSize(1));
-    assertThat(child1Resource.children(), hasSize(1));
-    assertThat(child2Resource.children(), hasSize(1));
-    assertThat(child3Resource.children(), hasSize(1));
+    ClientErrorException ex = assertThrows(ClientErrorException.class,
+            () -> rootResource.update(rootResource.get().parentId(child3Resource.get().getId())));
+    assertThat(Helpers.getResponseMessage(ex), is("Cycle detected between groups"));
   }
 
   @Test

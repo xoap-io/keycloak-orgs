@@ -8,6 +8,7 @@ import io.phasetwo.service.representation.OrganizationRole;
 import org.jetbrains.annotations.NotNull;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.ModelDuplicateException;
+import org.keycloak.models.ModelIllegalStateException;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -62,6 +63,8 @@ public class GroupResource extends OrganizationAdminResource {
       } catch (ModelDuplicateException e) {
         throw new ClientErrorException(
                 String.format("Level group named '%s' already exists.", group.getName()), Response.Status.CONFLICT);
+      } catch (ModelIllegalStateException e) {
+        throw new ClientErrorException(e.getMessage(), Response.Status.CONFLICT);
       }
     }
 
