@@ -790,4 +790,13 @@ public class OrganizationResourceTest extends AbstractResourceTest {
     assertThat(rep.getDomains(), empty());
     assertThat(rep.getAttributes(), anEmptyMap());
   }
+
+  @Test
+  public void testOrganizationSearch() {
+    OrganizationsResource orgsResource = phaseTwo().organizations(REALM);
+    orgsResource.create(new OrganizationRepresentation().name("example"));
+    List<OrganizationRepresentation> organizations = orgsResource.get(Optional.of("ex%"), Optional.empty(), Optional.empty());
+    assertThat(organizations, hasSize(1));
+    assertThat(organizations.get(0).getName(), startsWith("ex"));
+  }
 }
