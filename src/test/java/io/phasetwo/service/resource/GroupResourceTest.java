@@ -65,14 +65,18 @@ public class GroupResourceTest extends AbstractResourceTest {
   public void testGroupAttributes() {
     String groupId = groupsResource.create(new OrganizationGroupRepresentation()
             .name("group")
-            .putAttributesItem("foo", List.of("bar")));
+            .putAttributesItem("key1", List.of("value1", "value2")));
 
     OrganizationGroupRepresentation group = groupsResource.group(groupId).get();
     assertThat(group.getId(), is(groupId));
     assertThat(group.getName(), is("group"));
     assertThat(group.getAttributes(), aMapWithSize(1));
-    assertThat(group.getAttributes(), hasKey("foo"));
-    assertThat(group.getAttributes(), hasValue(allOf(hasItem("bar"), iterableWithSize(1))));
+    assertThat(group.getAttributes(), hasKey("key1"));
+    assertThat(group.getAttributes(), hasValue(allOf(
+            iterableWithSize(2),
+            hasItem("value1"),
+            hasItem("value2")
+    )));
   }
 
   @Test

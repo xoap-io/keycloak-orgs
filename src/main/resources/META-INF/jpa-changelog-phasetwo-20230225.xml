@@ -98,8 +98,5 @@
   <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_ATTRIBUTE-2">
     <addForeignKeyConstraint baseColumnNames="GROUP_ID" baseTableName="ORGANIZATION_GROUP_ATTRIBUTE" constraintName="FK_group_attributes_to_group" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_GROUP"/>
   </changeSet>
-  <changeSet author="a8t3r" id="20230225-ORGANIZATION_GROUP_ATTRIBUT-3">
-    <addUniqueConstraint columnNames="GROUP_ID, NAME" constraintName="UK_group_attributes_group_and_name" tableName="ORGANIZATION_GROUP_ATTRIBUTE"/>
-  </changeSet>
 
 </databaseChangeLog>

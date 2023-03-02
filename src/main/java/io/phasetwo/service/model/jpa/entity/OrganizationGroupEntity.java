@@ -8,8 +8,7 @@ import java.util.Collection;
     @NamedQuery(name = "getOrganizationGroupIdsByParent", query = "select u.id from OrganizationGroupEntity u where u.parentId = :parent")
 })
 @Table(
-    name = "ORGANIZATION_GROUP",
-    uniqueConstraints = { @UniqueConstraint(columnNames = {"ORGANIZATION_ID", "PARENT_ID", "NAME"})}
+    name = "ORGANIZATION_GROUP"
 )
 @Entity
 public class OrganizationGroupEntity {
