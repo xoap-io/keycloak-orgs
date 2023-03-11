@@ -13,7 +13,6 @@ import javax.ws.rs.core.Response;
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.models.Constants;
-import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.idm.UserRepresentation;
 
@@ -22,8 +21,8 @@ public class MembersResource extends OrganizationAdminResource {
 
   private final OrganizationModel organization;
 
-  public MembersResource(RealmModel realm, OrganizationModel organization) {
-    super(realm);
+  public MembersResource(OrganizationAdminResource parent, OrganizationModel organization) {
+    super(parent);
     this.organization = organization;
   }
 
@@ -45,7 +44,7 @@ public class MembersResource extends OrganizationAdminResource {
   @DELETE
   @Path("{userId}")
   public Response removeMember(@PathParam("userId") String userId) {
-    canManage();
+    canDelete(userId);
 
     log.debugf("Remove member %s from %s %s", userId, realm.getName(), organization.getId());
     UserModel member = session.users().getUserById(realm, userId);
@@ -108,6 +107,12 @@ public class MembersResource extends OrganizationAdminResource {
   private void canManage() {
     if (!auth.hasManageOrgs() && !auth.hasOrgManageMembers(organization)) {
       throw notAuthorized(OrganizationAdminAuth.ORG_ROLE_MANAGE_MEMBERS, organization);
+    }
+  }
+
+  private void canDelete(String userId) {
+    if (userId != user.getId()) {
+      canManage();
     }
   }
 }

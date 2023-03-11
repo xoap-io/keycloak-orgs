@@ -3,7 +3,7 @@
   <groupId>io.phasetwo.keycloak</groupId>
   <artifactId>keycloak-orgs</artifactId>
   <packaging>jar</packaging>
-  <version>0.9-SNAPSHOT</version>
+  <version>0.18-SNAPSHOT</version>
 
   <parent>
     <groupId>com.github.xgp</groupId>
@@ -20,8 +20,8 @@
 
   <licenses>
     <license>
-      <name>GNU Affero General Public License</name>
-      <url>https://www.gnu.org/licenses/agpl-3.0.en.html</url>
+      <name>Elastic License v2</name>
+      <url>https://raw.githubusercontent.com/elastic/elasticsearch/main/licenses/ELASTIC-LICENSE-2.0.txt</url>
     </license>
   </licenses>
 
@@ -30,7 +30,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <main.java.package>io.phasetwo.service</main.java.package>
     <junit.version>4.13.2</junit.version>
-    <keycloak.version>20.0.1</keycloak.version>
+    <keycloak.version>21.0.1</keycloak.version>
     <lombok.version>1.18.22</lombok.version>
     <auto-service.version>1.0.1</auto-service.version>
     <jackson.version>2.13.4</jackson.version>
@@ -130,7 +130,7 @@
       <plugin> <!-- pretty up the code using google java standards `mvn fmt:format` -->
         <groupId>com.spotify.fmt</groupId>
         <artifactId>fmt-maven-plugin</artifactId>
-        <version>2.15</version>
+        <version>2.19</version>
       </plugin>
     </plugins>      
   </build>

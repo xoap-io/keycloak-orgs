@@ -37,8 +37,8 @@ public class InvitationsResource extends OrganizationAdminResource {
 
   private final OrganizationModel organization;
 
-  public InvitationsResource(RealmModel realm, OrganizationModel organization) {
-    super(realm);
+  public InvitationsResource(OrganizationAdminResource parent, OrganizationModel organization) {
+    super(parent);
     this.organization = organization;
   }
 

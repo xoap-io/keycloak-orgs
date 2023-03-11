@@ -15,7 +15,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.events.admin.OperationType;
-import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.representations.idm.UserRepresentation;
 
@@ -26,8 +25,9 @@ public class RoleResource extends OrganizationAdminResource {
   private final OrganizationRoleModel role;
   private final String name;
 
-  public RoleResource(RealmModel realm, OrganizationModel organization, String name) {
-    super(realm);
+  public RoleResource(
+      OrganizationAdminResource parent, OrganizationModel organization, String name) {
+    super(parent);
     this.organization = organization;
     this.role = organization.getRoleByName(name);
     this.name = name;
