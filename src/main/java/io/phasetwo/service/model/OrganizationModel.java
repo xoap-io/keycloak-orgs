@@ -1,12 +1,8 @@
 package io.phasetwo.service.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.MoreCollectors;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -41,6 +37,8 @@ public interface OrganizationModel extends WithAttributesModel {
 
   Stream<UserModel> getMembersStream();
 
+  Stream<UserModel> searchForMembersStream(String search, Integer firstResult, Integer maxResults);
+
   boolean hasMembership(UserModel user);
 
   void grantMembership(UserModel user);
@@ -58,33 +56,6 @@ public interface OrganizationModel extends WithAttributesModel {
   void revokeInvitations(String email);
 
   InvitationModel addInvitation(String email, UserModel inviter);
-
-  Stream<OrganizationRoleModel> getRolesStream();
-
-  default OrganizationRoleModel getRoleByName(String name) {
-    return getRolesStream()
-        .filter(r -> name.equals(r.getName()))
-        .collect(MoreCollectors.toOptional())
-        .orElse(null);
-  }
-
-  void removeRole(String name);
-
-  OrganizationRoleModel addRole(String name);
-
-  Stream<OrganizationGroupModel> getGroupsStream();
-
-  default OrganizationGroupModel getGroupById(String groupId) {
-    return getGroupsStream()
-            .filter(r -> groupId.equals(r.getId()))
-            .findFirst().orElse(null);
-  }
-
-  void removeGroup(String groupId);
-
-  void moveGroup(OrganizationGroupModel child, OrganizationGroupModel parent);
-
-  OrganizationGroupModel createGroup(String groupName, OrganizationGroupModel parent);
 
   Stream<IdentityProviderModel> getIdentityProvidersStream();
 

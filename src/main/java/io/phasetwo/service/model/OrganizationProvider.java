@@ -32,4 +32,30 @@ public interface OrganizationProvider extends Provider {
   void removeOrganizations(RealmModel realm);
 
   Stream<InvitationModel> getUserInvitationsStream(RealmModel realm, UserModel user);
+
+  Stream<OrganizationRoleModel> getRolesStream();
+
+  default OrganizationRoleModel getRoleByName(String name) {
+    return getRolesStream()
+        .filter(r -> name.equals(r.getName()))
+        .collect(MoreCollectors.toOptional())
+        .orElse(null);
+  }
+
+  void removeRole(String name);
+
+  OrganizationRoleModel addRole(String name);
+
+  Stream<OrganizationGroupModel> getGroupsStream();
+
+  default OrganizationGroupModel getGroupById(String groupId) {
+    return getGroupsStream().filter(r -> groupId.equals(r.getId())).findFirst().orElse(null);
+  }
+
+  void removeGroup(String groupId);
+
+  void moveGroup(OrganizationGroupModel child, OrganizationGroupModel parent);
+
+  OrganizationGroupModel addGroup(String groupName, OrganizationGroupModel parent);
+
 }

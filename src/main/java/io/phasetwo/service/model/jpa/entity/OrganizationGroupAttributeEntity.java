@@ -1,20 +1,19 @@
 package io.phasetwo.service.model.jpa.entity;
 
+import java.util.Objects;
+import javax.persistence.*;
 import org.hibernate.annotations.Nationalized;
 
-import javax.persistence.*;
-import java.util.Objects;
-
 @Table(
-  name = "ORGANIZATION_GROUP_ATTRIBUTE",
-  uniqueConstraints = {@UniqueConstraint(columnNames = {"GROUP_ID", "NAME"})})
+    name = "ORGANIZATION_GROUP_ATTRIBUTE",
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"GROUP_ID", "NAME"})})
 @Entity
 public class OrganizationGroupAttributeEntity {
 
   @Id
   @Column(name = "ID", length = 36)
   @Access(
-          AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This
+      AccessType.PROPERTY) // we do this because relationships often fetch id, but not entity.  This
   // avoids an extra SQL
   protected String id;
 

@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.persistence.EntityManager;
 import javax.ws.rs.NotAuthorizedException;
-
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;

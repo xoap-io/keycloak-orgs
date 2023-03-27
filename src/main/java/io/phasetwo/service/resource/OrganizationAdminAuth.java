@@ -261,8 +261,7 @@ public class OrganizationAdminAuth extends AdminAuth {
 
   /**
    * @param org The selected organization
-   * @return true if the logged-in user has the view-groups permission *IN* the
-   *     specified org
+   * @return true if the logged-in user has the view-groups permission *IN* the specified org
    */
   boolean hasOrgViewGroups(OrganizationModel org) {
     return hasOrgRole(org, ORG_ROLE_VIEW_GROUPS);
@@ -270,8 +269,7 @@ public class OrganizationAdminAuth extends AdminAuth {
 
   /**
    * @param org The selected organization
-   * @return true if the logged-in user has the manage-groups permission *IN* the
-   *     specified org
+   * @return true if the logged-in user has the manage-groups permission *IN* the specified org
    */
   boolean hasOrgManageGroups(OrganizationModel org) {
     return hasOrgRole(org, ORG_ROLE_MANAGE_GROUPS);

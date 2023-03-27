@@ -8,7 +8,6 @@ import io.phasetwo.service.model.OrganizationProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;

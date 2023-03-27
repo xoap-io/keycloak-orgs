@@ -1,0 +1,35 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+  <changeSet author="garth" id="org-roles-remove-org-0">
+    <!-- Make a temp table organization_role_tmp, with the same schema as organization_role -->
+    <createTable tableName="ORGANIZATION_ROLE_TMP">
+      <column name="ID" type="VARCHAR(36)">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="ORGANIZATION_ROLE_TMP_PK"/>
+      </column>
+      <column name="ORGANIZATION_ID" type="VARCHAR(36)"/>
+      <column name="NAME" type="VARCHAR(255)"/>
+      <column name="DESCRIPTION" type="VARCHAR(1024)"/>
+    </createTable>
+
+    <!-- populated by select * into organization_role_tmp from organization_role -->
+    <sql>insert into ORGANIZATION_ROLE_TMP (ID, ORGANIZATION_ID, NAME, DESCRIPTION) select ID, ORGANIZATION_ID, NAME, DESCRIPTION from ORGANIZATION_ROLE</sql>
+
+    <dropUniqueConstraint constraintName="UK_N6IFCXQHTNVMANYP0QIXDAO9G" tableName="ORGANIZATION_ROLE"/>
+    <dropForeignKeyConstraint baseTableName="USER_ORGANIZATION_ROLE_MAPPING" constraintName="FK_123g9nf5findslfksadifu277" />
+    <dropForeignKeyConstraint baseTableName="ORGANIZATION_ROLE" constraintName="FK_dsalfkmadslkfala4wf932f2w" />
+    <dropColumn tableName="ORGANIZATION_ROLE" columnName="ORGANIZATION_ID" />
+    
+    <!-- Delete data from organization_role -->
+    <sql>delete from ORGANIZATION_ROLE</sql>
+
+    <customChange class="io.phasetwo.service.model.migration.DecoupleOrgRoles" />
+    
+    <addUniqueConstraint columnNames="NAME" constraintName="UK_N6IFCXQHTNVMANYP0QIXDAO9G" tableName="ORGANIZATION_ROLE"/>
+    <addForeignKeyConstraint baseColumnNames="ROLE_ID" baseTableName="USER_ORGANIZATION_ROLE_MAPPING" constraintName="FK_123g9nf5findslfksadifu277" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ORGANIZATION_ROLE"/>
+
+    <!-- Drop organization_role_tmp -->
+
+  </changeSet>
+
+</databaseChangeLog>

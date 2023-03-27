@@ -96,7 +96,7 @@ public class OrganizationResource extends OrganizationAdminResource {
   @Path("groups")
   public GroupsResource groups() {
     if (auth.hasViewOrgs() || auth.hasOrgViewGroups(organization)) {
-      return setupResource(new GroupsResource(realm, organization));
+      return new GroupsResource(this, organization);
     } else {
       throw new NotAuthorizedException(
           String.format("Insufficient permission to access groups for %s", organization.getId()));

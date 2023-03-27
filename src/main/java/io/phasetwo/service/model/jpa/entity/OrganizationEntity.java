@@ -100,8 +100,7 @@ public class OrganizationEntity {
       fetch = FetchType.LAZY,
       cascade = CascadeType.ALL,
       orphanRemoval = true,
-      mappedBy = "organization"
-  )
+      mappedBy = "organization")
   protected Collection<OrganizationGroupEntity> groups = new ArrayList<OrganizationGroupEntity>();
 
   public String getId() {

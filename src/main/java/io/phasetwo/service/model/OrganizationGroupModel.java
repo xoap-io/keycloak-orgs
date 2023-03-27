@@ -1,12 +1,8 @@
 package io.phasetwo.service.model;
 
-import io.phasetwo.service.model.jpa.OrganizationGroupAdapter;
-import io.phasetwo.service.model.jpa.entity.GroupOrganizationRoleMappingEntity;
 import io.phasetwo.service.model.jpa.entity.OrganizationGroupEntity;
-import org.keycloak.models.UserModel;
-
-import java.util.Collection;
 import java.util.stream.Stream;
+import org.keycloak.models.UserModel;
 
 public interface OrganizationGroupModel extends WithAttributesModel {
 

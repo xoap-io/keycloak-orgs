@@ -2,10 +2,20 @@ package io.phasetwo.service.model.jpa;
 
 import static io.phasetwo.service.Orgs.*;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Streams;
 import io.phasetwo.service.model.*;
+import io.phasetwo.service.model.DomainModel;
+import io.phasetwo.service.model.InvitationModel;
+import io.phasetwo.service.model.OrganizationModel;
+import io.phasetwo.service.model.OrganizationRoleModel;
 import io.phasetwo.service.model.jpa.entity.*;
-
+import io.phasetwo.service.model.jpa.entity.DomainEntity;
+import io.phasetwo.service.model.jpa.entity.InvitationEntity;
+import io.phasetwo.service.model.jpa.entity.OrganizationAttributeEntity;
+import io.phasetwo.service.model.jpa.entity.OrganizationEntity;
+import io.phasetwo.service.model.jpa.entity.OrganizationMemberEntity;
+import io.phasetwo.service.model.jpa.entity.OrganizationRoleEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,9 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.ClientErrorException;
-import javax.ws.rs.core.Response;
-
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.models.*;
 import org.keycloak.models.jpa.JpaModel;
@@ -158,6 +165,23 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
   }
 
   @Override
+  public Stream<UserModel> searchForMembersStream(
+      String search, Integer firstResult, Integer maxResults) {
+    // TODO this could be optimized for large member lists with a query
+    return getMembersStream()
+        .filter(
+            (m) -> {
+              if (Strings.isNullOrEmpty(search)) return true;
+              return (m.getEmail() != null && m.getEmail().toLowerCase().contains(search))
+                  || (m.getUsername() != null && m.getUsername().toLowerCase().contains(search))
+                  || (m.getFirstName() != null && m.getFirstName().toLowerCase().contains(search))
+                  || (m.getLastName() != null && m.getLastName().toLowerCase().contains(search));
+            })
+        .skip(firstResult)
+        .limit(maxResults);
+  }
+
+  @Override
   public Stream<UserModel> getMembersStream() {
     return org.getMembers().stream()
         .map(OrganizationMemberEntity::getUserId)
@@ -227,12 +251,14 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
 
   @Override
   public Stream<OrganizationRoleModel> getRolesStream() {
-    return org.getRoles().stream().map(r -> new OrganizationRoleAdapter(session, realm, em, r, this));
+    return org.getRoles().stream()
+        .map(r -> new OrganizationRoleAdapter(session, realm, em, r, this));
   }
 
   @Override
   public void removeRole(String name) {
-    Optional<OrganizationRoleEntity> roleEntityOpt = org.getRoles().stream().filter(r -> r.getName().equals(name)).findFirst();
+    Optional<OrganizationRoleEntity> roleEntityOpt =
+        org.getRoles().stream().filter(r -> r.getName().equals(name)).findFirst();
     if (roleEntityOpt.isEmpty()) return;
 
     OrganizationRoleEntity roleEntity = roleEntityOpt.get();
@@ -254,7 +280,8 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
 
   @Override
   public Stream<OrganizationGroupModel> getGroupsStream() {
-    return org.getGroups().stream().map(r -> new OrganizationGroupAdapter(session, realm, em, this, r));
+    return org.getGroups().stream()
+        .map(r -> new OrganizationGroupAdapter(session, realm, em, this, r));
   }
 
   @Override
@@ -265,11 +292,15 @@ public class OrganizationAdapter implements OrganizationModel, JpaModel<Organiza
   }
 
   private Stream<OrganizationGroupModel> getAllSiblings(OrganizationGroupModel parent) {
-    return parent.getSubGroupsStream().flatMap(g -> {
-      Stream<OrganizationGroupModel> subGroupsStream = g.getSubGroupsStream()
-              .flatMap(s -> Streams.concat(getAllSiblings(s), Stream.of(s)));
-      return Stream.concat(subGroupsStream, Stream.of(g));
-    });
+    return parent
+        .getSubGroupsStream()
+        .flatMap(
+            g -> {
+              Stream<OrganizationGroupModel> subGroupsStream =
+                  g.getSubGroupsStream()
+                      .flatMap(s -> Streams.concat(getAllSiblings(s), Stream.of(s)));
+              return Stream.concat(subGroupsStream, Stream.of(g));
+            });
   }
 
   private void checkCycle(OrganizationGroupModel child, OrganizationGroupModel parent) {

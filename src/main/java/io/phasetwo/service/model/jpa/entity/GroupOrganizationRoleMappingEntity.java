@@ -17,12 +17,12 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 @NamedQueries({
   @NamedQuery(
-    name = "getOrganizationGroupsInRole",
-    query = "select g from GroupOrganizationRoleMappingEntity m, OrganizationGroupEntity g where m.role = :role and g.id = m.group")
+      name = "getOrganizationGroupsInRole",
+      query =
+          "select g from GroupOrganizationRoleMappingEntity m, OrganizationGroupEntity g where m.role = :role and g.id = m.group")
 })
 @Table(
     name = "GROUP_ORGANIZATION_ROLE_MAPPING",

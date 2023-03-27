@@ -59,10 +59,11 @@ public class KeycloakSuite implements TestRule {
 
   private static final String[] ARGS = {};
 
+  //    "keycloak.connectionsJpa.url=jdbc:h2:file:./target/data/keycloak_4_x_master",
   private static final String[] PROPS = {
     "keycloak.bind.address=127.0.0.1",
     "java.net.preferIPv4Stack=true",
-    "keycloak.connectionsJpa.url=jdbc:h2:file:./target/data/keycloak_4_x_master",
+    "keycloak.connectionsJpa.url=jdbc:h2:file:./data/keycloak_4_x_master",
     "keycloak.connectionsJpa.driver=org.h2.Driver",
     "keycloak.connectionsJpa.driverDialect=org.hibernate.dialect.H2Dialect",
     "keycloak.connectionsJpa.user=sa",

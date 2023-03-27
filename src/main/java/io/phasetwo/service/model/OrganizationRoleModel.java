@@ -27,13 +27,9 @@ public interface OrganizationRoleModel {
 
   boolean hasRole(OrganizationGroupModel group);
 
-  /**
-   * if user has direct or indirect (by group) association to role
-   */
+  /** if user has direct or indirect (by group) association to role */
   boolean hasRole(UserModel user);
 
-  /**
-   * if user has direct association to role
-   */
+  /** if user has direct association to role */
   boolean hasDirectRole(UserModel user);
 }

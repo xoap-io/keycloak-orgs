@@ -9,7 +9,6 @@ import io.phasetwo.service.model.OrganizationRoleModel;
 import io.phasetwo.service.model.jpa.entity.InvitationEntity;
 import io.phasetwo.service.model.jpa.entity.TeamEntity;
 import io.phasetwo.service.representation.*;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,19 +19,16 @@ import org.keycloak.representations.account.UserRepresentation;
 public class Converters {
 
   public static OrganizationRole convertOrganizationRole(OrganizationRoleModel m) {
-    return new OrganizationRole()
-            .id(m.getId())
-            .name(m.getName())
-            .description(m.getDescription());
+    return new OrganizationRole().id(m.getId()).name(m.getName()).description(m.getDescription());
   }
 
   public static Group convertOrganizationGroup(OrganizationGroupModel e) {
     return new Group()
-            .id(e.getId())
-            .name(e.getName())
-            .description(e.getDescription())
-            .parentId(e.getParentId())
-            .attributes(e.getAttributes());
+        .id(e.getId())
+        .name(e.getName())
+        .description(e.getDescription())
+        .parentId(e.getParentId())
+        .attributes(e.getAttributes());
   }
 
   public static Organization convertOrganizationModelToOrganization(OrganizationModel e) {

@@ -11,19 +11,19 @@ import javax.persistence.*;
 @NamedQueries({
   @NamedQuery(
       name = "getOrganizationRoles",
-      query = "SELECT m FROM OrganizationRoleEntity m WHERE m.organization = :organization"),
+      query = "SELECT m FROM OrganizationRoleEntity m"),
   @NamedQuery(
       name = "getOrganizationRoleByName",
       query =
-          "SELECT m FROM OrganizationRoleEntity m WHERE m.organization = :organization AND m.name = :name"),
+          "SELECT m FROM OrganizationRoleEntity m WHERE m.name = :name"),
   @NamedQuery(
       name = "removeOrganizationRole",
       query =
-          "DELETE FROM OrganizationRoleEntity m WHERE m.organization = :organization AND m.name = :name")
+          "DELETE FROM OrganizationRoleEntity m WHERE m.name = :name")
 })
 @Table(
     name = "ORGANIZATION_ROLE",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"ORGANIZATION_ID", "NAME"})})
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"NAME"})})
 @Entity
 public class OrganizationRoleEntity {
 
@@ -31,10 +31,6 @@ public class OrganizationRoleEntity {
   @Column(name = "ID", length = 36)
   @Access(AccessType.PROPERTY)
   protected String id;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "ORGANIZATION_ID")
-  protected OrganizationEntity organization;
 
   @Column(name = "NAME", nullable = false)
   protected String name;
@@ -51,12 +47,12 @@ public class OrganizationRoleEntity {
       new ArrayList<UserOrganizationRoleMappingEntity>();
 
   @OneToMany(
-          fetch = FetchType.LAZY,
-          cascade = CascadeType.ALL,
-          orphanRemoval = true,
-          mappedBy = "role")
+      fetch = FetchType.LAZY,
+      cascade = CascadeType.ALL,
+      orphanRemoval = true,
+      mappedBy = "role")
   protected Collection<GroupOrganizationRoleMappingEntity> groupMappings =
-          new ArrayList<GroupOrganizationRoleMappingEntity>();
+      new ArrayList<GroupOrganizationRoleMappingEntity>();
 
   public String getId() {
     return id;
@@ -64,14 +60,6 @@ public class OrganizationRoleEntity {
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public OrganizationEntity getOrganization() {
-    return organization;
-  }
-
-  public void setOrganization(OrganizationEntity organization) {
-    this.organization = organization;
   }
 
   public String getName() {
@@ -115,13 +103,12 @@ public class OrganizationRoleEntity {
     OrganizationRoleEntity key = (OrganizationRoleEntity) o;
 
     if (!name.equals(key.name)) return false;
-    if (!organization.equals(key.organization)) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(organization, name);
+    return Objects.hash(name);
   }
 }
