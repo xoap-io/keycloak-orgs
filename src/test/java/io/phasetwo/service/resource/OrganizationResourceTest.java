@@ -294,9 +294,6 @@ public class OrganizationResourceTest extends AbstractResourceTest {
     // check if user has role
     assertThat(rolesResource.hasRole(name, user.getId()), is(true));
 
-    // revoke role from user
-    rolesResource.revoke(name, user.getId());
-
     // delete the user
     deleteUser(keycloak, REALM, user.getId());
 
