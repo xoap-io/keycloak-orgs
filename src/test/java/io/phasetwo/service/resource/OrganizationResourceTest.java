@@ -255,7 +255,62 @@ public class OrganizationResourceTest extends AbstractResourceTest {
     assertThat(organizations, empty());
   }
 
+  /**
+   * Testing for orphaned db records in organization_member
+   * https://github.com/p2-inc/keycloak-orgs/issues/65
+   */
+  @Test
+  public void testUserDeleteCascadeMembershipAndRoles() {
+    Keycloak keycloak = server.client();
+    PhaseTwo client = phaseTwo(keycloak);
+    OrganizationsResource orgsResource = client.organizations(REALM);
+    String id = createDefaultOrg(orgsResource);
 
+    OrganizationResource orgResource = orgsResource.organization(id);
+    OrganizationMembershipsResource membershipsResource = orgResource.memberships();
+    OrganizationRolesResource rolesResource = orgResource.roles();
+
+    assertThat(getMembershipCount(orgResource), is(1l)); // org admin default
+
+    // create a user
+    org.keycloak.representations.idm.UserRepresentation user = createUser(keycloak, REALM, "johndoe");
+
+    // give the user a membership to this org
+    membershipsResource.add(user.getId());
+
+    // check members for user in org
+    List<UserRepresentation> members = membershipsResource.members();
+    assertThat(members, notNullValue());
+    assertThat(members, hasSize(2)); // + org admin default
+    assertThat(membershipsResource.isMember(user.getId()), is(true));
+
+    // give the user a role in org
+    String name = "manage-organization";
+    rolesResource.grant(name, user.getId());
+    List<UserRepresentation> rs = rolesResource.users(name);
+    assertThat(rs, notNullValue());
+    assertThat(rs, hasSize(2)); // + org admin default
+
+    // check if user has role
+    assertThat(rolesResource.hasRole(name, user.getId()), is(true));
+
+    // revoke role from user
+    rolesResource.revoke(name, user.getId());
+
+    // delete the user
+    deleteUser(keycloak, REALM, user.getId());
+
+    // offending method that threw the exception
+    members = membershipsResource.members();
+
+    // the user should no longer be a member
+    assertThat(members, notNullValue());
+    assertThat(members, hasSize(1)); // org admin default
+    assertThat(rolesResource.hasRole(name, user.getId()), is(false));
+
+    // delete org
+    orgResource.delete();
+  }
 
   @Test
   public void testMembershipsCount() {
