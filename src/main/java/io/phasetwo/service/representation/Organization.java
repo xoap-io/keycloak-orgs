@@ -1,5 +1,6 @@
 package io.phasetwo.service.representation;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -54,7 +55,8 @@ public class Organization {
     return this;
   }
 
-  @JsonProperty("displayName")
+  @JsonProperty("display_name")
+  @JsonAlias("displayName")
   public String getDisplayName() {
     return displayName;
   }

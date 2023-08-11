@@ -1,5 +1,6 @@
 package io.phasetwo.service.representation;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
@@ -17,7 +18,6 @@ public class Invitation {
   private @Valid String email = null;
   private @Valid String createdAt = null;
   private @Valid String inviterId = null;
-  private @Valid String invitationUrl = null;
   private @Valid String organizationId = null;
   private @Valid List<String> teamIds = Lists.newArrayList();
   private @Valid List<String> roles = Lists.newArrayList();
@@ -85,7 +85,8 @@ public class Invitation {
     return this;
   }
 
-  @JsonProperty("inviterId")
+  @JsonProperty("inviter_id")
+  @JsonAlias("inviterId")
   public String getInviterId() {
     return inviterId;
   }
@@ -99,21 +100,13 @@ public class Invitation {
     return this;
   }
 
-  @JsonProperty("invitationUrl")
-  public String getInvitationUrl() {
-    return invitationUrl;
-  }
-
-  public void setInvitationUrl(String invitationUrl) {
-    this.invitationUrl = invitationUrl;
-  }
-
   public Invitation organizationId(String organizationId) {
     this.organizationId = organizationId;
     return this;
   }
 
-  @JsonProperty("organizationId")
+  @JsonProperty("organization_id")
+  @JsonAlias("organizationId")
   public String getOrganizationId() {
     return organizationId;
   }

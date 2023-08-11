@@ -57,7 +57,7 @@ public class OrganizationsResource extends OrganizationAdminResource {
                       });
               Map<String, Object> org = Maps.newHashMap();
               org.put("name", o.getName());
-              if (o.getDisplayName() != null) org.put("displayName", o.getDisplayName());
+              if (o.getDisplayName() != null) org.put("display_name", o.getDisplayName());
               if (o.getUrl() != null) org.put("url", o.getUrl());
               org.put("attributes", o.getAttributes());
               org.put("roles", roles);

@@ -1,5 +1,6 @@
 package io.phasetwo.service.representation;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 import jakarta.validation.Valid;
@@ -34,7 +35,8 @@ public class InvitationRequest {
     return this;
   }
 
-  @JsonProperty("inviterId")
+  @JsonProperty("inviter_id")
+  @JsonAlias("inviterId")
   public String getInviterId() {
     return inviterId;
   }
@@ -62,7 +64,8 @@ public class InvitationRequest {
     return this;
   }
 
-  @JsonProperty("redirectUri")
+  @JsonProperty("redirect_uri")
+  @JsonAlias("redirectUri")
   @NotNull
   public String getRedirectUri() {
     return redirectUri;
