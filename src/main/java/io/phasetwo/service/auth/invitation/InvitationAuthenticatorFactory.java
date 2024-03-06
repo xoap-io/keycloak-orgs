@@ -83,3 +83,4 @@ public class InvitationAuthenticatorFactory
   @Override
   public void close() {}
 }
+
