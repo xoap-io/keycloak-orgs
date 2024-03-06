@@ -25,7 +25,7 @@ public class AutoInvitationListenerProvider implements EventListenerProvider {
             RealmModel realm = realmProvider.getRealm(event.getRealmId());
             UserModel user =  userProvider.getUserById(realm, event.getUserId());
             log.infof(
-                    "InvitationRequiredAction.processAction called for realm %s and user %s",
+                    "Silent invitation add called for realm %s and user %s",
                     realm.getName(), user.getEmail());
 
 
@@ -34,8 +34,9 @@ public class AutoInvitationListenerProvider implements EventListenerProvider {
                     .forEach(
                             i -> {
                                     // add membership
-                                    log.infof("selected %s", i.getOrganization().getId());
+                                    log.infof("Adding user silently from invitation %s", i.getOrganization().getId());
                                     memberFromInvitation(i, user);
+                                     i.getOrganization().revokeInvitation(i.getId());
 
                             });
         }
@@ -63,5 +64,6 @@ public class AutoInvitationListenerProvider implements EventListenerProvider {
                                 role.grantRole(user);
                             }
                         });
+
     }
 }
