@@ -30,6 +30,10 @@ public class AutoInvitationListenerProvider implements EventListenerProvider {
 
 
             OrganizationProvider orgs = _session.getProvider(OrganizationProvider.class);
+
+            long invitationCount = orgs.getUserInvitationsStream(realm, user).count();
+            log.infof("Found %d invitations for user %s", invitationCount, user.getEmail());
+
             orgs.getUserInvitationsStream(realm, user)
                     .forEach(
                             i -> {
@@ -39,6 +43,17 @@ public class AutoInvitationListenerProvider implements EventListenerProvider {
                                      i.getOrganization().revokeInvitation(i.getId());
 
                             });
+
+            log.infof("Removing 'invitation-required-action' from the user...");
+            // Remove leftover invitation required action if present
+            user.getRequiredActionsStream()
+                .filter(a -> a.equals("invitation-required-action"))
+                .findFirst()
+                .ifPresent(a -> {
+                    log.infof("Removing invitation-required-action from user %s", user.getUsername());
+                    user.removeRequiredAction(a);
+                });
+
         }
     }
 
