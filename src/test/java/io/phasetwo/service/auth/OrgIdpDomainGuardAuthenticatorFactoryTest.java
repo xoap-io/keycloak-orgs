@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
+import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.events.EventBuilder;
@@ -162,6 +163,25 @@ class OrgIdpDomainGuardAuthenticatorFactoryTest {
 
     verify(context, never()).success();
     verify(context).failureChallenge(eq(AuthenticationFlowError.ACCESS_DENIED), any());
+  }
+
+  @Test
+  void added_to_a_flow_without_an_idp_login_it_lets_ordinary_logins_through() {
+    AuthenticationFlowContext context = context(false);
+
+    try (MockedStatic<PostOrgAuthFlow> flow = mockStatic(PostOrgAuthFlow.class)) {
+      flow.when(() -> PostOrgAuthFlow.getBrokeredIdentityContext(context))
+          .thenThrow(
+              new AuthenticationFlowException(
+                  "Not found serialized context in clientSession",
+                  AuthenticationFlowError.IDENTITY_PROVIDER_ERROR));
+
+      new OrgIdpDomainGuardAuthenticatorFactory().authenticate(context);
+    }
+
+    verify(context).success();
+    verify(context, never()).failureChallenge(any(), any());
+    verifyNoInteractions(orgs);
   }
 
   // ── Fixtures ────────────────────────────────────────────────────────────

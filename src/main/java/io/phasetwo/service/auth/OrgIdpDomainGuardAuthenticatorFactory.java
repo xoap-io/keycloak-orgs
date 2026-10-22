@@ -10,6 +10,7 @@ import java.util.Map;
 import lombok.extern.jbosslog.JBossLog;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
+import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
 import org.keycloak.authentication.authenticators.broker.AbstractIdpAuthenticator;
@@ -32,7 +33,8 @@ import org.keycloak.models.RealmModel;
  * verified domain of the organization that owns the IdP. IdPs no organization owns pass untouched.
  *
  * <p>Use it in the first-broker-login flow of organization IdPs, REQUIRED, after "Review Profile" and
- * before "User creation or linking".
+ * before "User creation or linking". Anywhere else, where no IdP login is being finished, it does
+ * nothing.
  */
 @JBossLog
 @AutoService(AuthenticatorFactory.class)
@@ -57,7 +59,16 @@ public class OrgIdpDomainGuardAuthenticatorFactory extends BaseAuthenticatorFact
 
   @Override
   public void authenticate(AuthenticationFlowContext context) {
-    BrokeredIdentityContext brokerContext = PostOrgAuthFlow.getBrokeredIdentityContext(context);
+    BrokeredIdentityContext brokerContext;
+    try {
+      brokerContext = PostOrgAuthFlow.getBrokeredIdentityContext(context);
+    } catch (AuthenticationFlowException notABrokeredLogin) {
+      // Only meaningful where an IdP login is being finished. Added to any other flow by mistake
+      // (the browser flow, say), it must not break ordinary logins: it lets them through.
+      log.warnf("%s is not in a broker login flow; it does nothing there", PROVIDER_ID);
+      context.success();
+      return;
+    }
     IdentityProviderModel idp = brokerContext.getIdpConfig();
     boolean typedIn =
         Boolean.parseBoolean(
