@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.mock;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.net.InternetDomainName;
 import io.phasetwo.service.model.OrganizationModel;
 import io.phasetwo.service.model.OrganizationProvider;
 import java.util.HashMap;
@@ -113,6 +115,31 @@ class OrgIdpDomainGuardAuthenticatorFactoryTest {
     assertThat(refusal("x@not_a_domain%"), containsString("not a verified domain"));
   }
 
+  @Test
+  void a_switched_off_identity_provider_is_refused_before_anything_is_looked_up() {
+    // Reachable through its broker login URL even when disabled; Keycloak's own refusal in the
+    // first-broker-login steps is overwritten by their success. Nothing may be created or linked.
+    IdentityProviderModel disabled = idp(ORG);
+    disabled.setEnabled(false);
+
+    assertThat(
+        OrgIdpDomainGuardAuthenticatorFactory.refusal(
+            orgs, realm, disabled, "john@contoso.com", false),
+        containsString("disabled"));
+    verifyNoInteractions(orgs);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"john@contoso.com.", "john@contoso。com", "john@contoso．com", "john@CONTOSO.COM."})
+  void a_domain_that_only_matches_after_normalisation_is_refused(String email) {
+    // The lookup would normalise a trailing dot or another dot character to "contoso.com" and match,
+    // but the account would be stored with the address as sent. Checked and stored must be the same.
+    verifiedByAfterNormalisation("contoso.com", ORG);
+
+    assertThat(refusal(email), containsString("not a verified domain"));
+  }
+
   // ── The flow step ───────────────────────────────────────────────────────
 
   @Test
@@ -166,6 +193,25 @@ class OrgIdpDomainGuardAuthenticatorFactoryTest {
   }
 
   @Test
+  void a_login_through_a_switched_off_identity_provider_stops_with_its_own_message() {
+    verifiedBy("contoso.com", ORG);
+    AuthenticationFlowContext context = context(false);
+    LoginFormsProvider form = context.form();
+    BrokeredIdentityContext switchedOff = broker("john@contoso.com");
+    switchedOff.getIdpConfig().setEnabled(false);
+
+    try (MockedStatic<PostOrgAuthFlow> flow = mockStatic(PostOrgAuthFlow.class)) {
+      flow.when(() -> PostOrgAuthFlow.getBrokeredIdentityContext(context)).thenReturn(switchedOff);
+
+      new OrgIdpDomainGuardAuthenticatorFactory().authenticate(context);
+    }
+
+    verify(context, never()).success();
+    verify(form).setError(OrgIdpDomainGuardAuthenticatorFactory.DISABLED_MESSAGE);
+    verify(context).failureChallenge(eq(AuthenticationFlowError.ACCESS_DENIED), any());
+  }
+
+  @Test
   void added_to_a_flow_without_an_idp_login_it_lets_ordinary_logins_through() {
     AuthenticationFlowContext context = context(false);
 
@@ -197,9 +243,31 @@ class OrgIdpDomainGuardAuthenticatorFactoryTest {
         .thenAnswer(invocation -> Stream.of(org));
   }
 
+  /**
+   * Answers like the JPA provider does: it runs what it is given through {@link InternetDomainName}
+   * (lower case, look-alike dots to '.', trailing dot dropped) before matching the stored domain.
+   */
+  private void verifiedByAfterNormalisation(String domain, String orgId) {
+    OrganizationModel org = mock(OrganizationModel.class);
+    when(org.getId()).thenReturn(orgId);
+    when(orgs.getOrganizationsStreamForDomain(
+            eq(realm),
+            argThat(
+                (String given) -> {
+                  try {
+                    return given != null && InternetDomainName.from(given).toString().equals(domain);
+                  } catch (IllegalArgumentException notADomain) {
+                    return false;
+                  }
+                }),
+            eq(true)))
+        .thenAnswer(invocation -> Stream.of(org));
+  }
+
   private static IdentityProviderModel idp(String owningOrgId) {
     IdentityProviderModel idp = new IdentityProviderModel();
     idp.setAlias("org-" + (owningOrgId == null ? "none" : owningOrgId));
+    idp.setEnabled(true);
     Map<String, String> config = new HashMap<>();
     if (owningOrgId != null) config.put(ORG_OWNER_CONFIG_KEY, owningOrgId);
     idp.setConfig(config);
